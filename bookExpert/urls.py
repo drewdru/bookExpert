@@ -13,9 +13,19 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from django.conf.urls import url
+from django.conf.urls import include, url
 from django.contrib import admin
+from django.conf import settings
+from django.conf.urls.static import static
+
+handler401 = 'main.views.error_401_page'
+handler404 = 'main.views.error_404_page'
+handler500 = 'main.views.error_50x_page'
+handler502 = 'main.views.error_50x_page'
+handler503 = 'main.views.error_50x_page'
+handler504 = 'main.views.error_50x_page'
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
+    url(r'^bookExpert/', include('main.urls')),
 ]

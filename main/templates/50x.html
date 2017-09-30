@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block stylesheet %}
+<link href='{% static "errors.css" %}' type="text/css" rel="stylesheet">
+<link href="//fonts.googleapis.com/css?family=Oxygen:400,800" rel="stylesheet" type="text/css">
+{% endblock %}
+{% block content %}
+<div class="screenCenter noselect">
+  <h4>Oops! Something went wrong...</h4>
+  <h1>500</h1>
+</div>
+{% endblock %}

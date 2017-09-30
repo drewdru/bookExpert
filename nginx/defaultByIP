@@ -1,12 +1,17 @@
 server {
 	listen *:80;
-	server_name x.x.x.x; # need allow: sudo ufw allow from x.x.x.x to any port 80
+	server_name x.x.x.x 192.168.0.1 127.0.0.1; # need allow: sudo ufw allow from x.x.x.x to any port 80
 
     	charset utf-8;
     	error_log  /var/log/nginx/error.log;
 
 	root /var/www/html;
         index index.html index.htm index.nginx-debian.html;
+
+	location / {
+        	# nginx:8000 use ports 172.17.0.1:8001 localhost:8002
+        	proxy_pass http://localhost:8002;
+    	}
 
 	location / {
 		# First attempt to serve request as file, then
