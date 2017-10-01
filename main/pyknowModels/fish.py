@@ -1,11 +1,15 @@
 from django.db import models
 from django.shortcuts import render
 from django.template import Context, RequestContext
+from main.djangoModels.fish import fish
+
+
 import pyknow
 
 class Fish(pyknow.Fact):
-    # TODO: get facts from DB
     pass
+    # self.fishData = fish.Fish.objects.all()
+
 class FishDetachment(pyknow.Fact):
     # TODO: get facts from DB
     pass
@@ -40,8 +44,8 @@ class FishEngine(pyknow.KnowledgeEngine):
     #     self.declare(FishFeature(feature='lips with 4 mustaches'))
 
     @pyknow.Rule(pyknow.Fact(action='fishing'),
-            FishDetachment(detachment='carp'),
-            FishFeature(feature='lips with 4 mustaches'))
+            Fish(detachment='carp'),
+            Fish(feature='lips with 4 mustaches'))
     def carp(self, **kwargs):
         self.getGraph()
         self.response = render(self.request, 'labs/fish.html', {
