@@ -1,7 +1,11 @@
+__pycache__/
+.vscode/
+
+full_static/
 Tasks/
 Temp/
 env/
-__pycache__/
+
 
 *.sqlite3
 *.log

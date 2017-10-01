@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'h7&q&#c7@)-awnj7#mp%61^ed=!f5_cfd1iu&#^21gyf_zvoxx'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
     '217.144.172.247',
@@ -31,6 +31,18 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost'
 ]
+SIMPLE_CACHE_SECONDS = 1
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+   }
+}
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+#         'LOCATION': 'cache_table',
+#     }
+# }
 
 
 # Application definition
@@ -125,5 +137,5 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = '/bookExpert/static/'
 STATIC_ROOT = 'full_static'

@@ -1,23 +1,13 @@
 server {
 	listen *:80;
-	server_name x.x.x.x 192.168.0.1 127.0.0.1; # need allow: sudo ufw allow from x.x.x.x to any port 80
-
-    	charset utf-8;
-    	error_log  /var/log/nginx/error.log;
-
-	root /var/www/html;
-        index index.html index.htm index.nginx-debian.html;
-
+	server_name x.x.x.x x.x.x.x 127.0.0.1; # need allow: sudo ufw allow from 217.144.172.247 to any port 80
 	location / {
-        	# nginx:8000 use ports 172.17.0.1:8001 localhost:8002
-        	proxy_pass http://localhost:8002;
+		root /var/www/html/;
+		index index.nginx-debian.html;
     	}
-
-	location / {
-		# First attempt to serve request as file, then
-		# as directory, then fall back to displaying a 404.
-		try_files $uri $uri/ =404;
-	}
-
-
+	location /bookExpert/ {
+		#root /var/www/html/
+        	# nginx:8002 use ports 172.17.0.1:8001 localhost:8001
+        	proxy_pass http://127.0.0.1:8002;
+    	}
 }

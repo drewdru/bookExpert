@@ -1,0 +1,15 @@
+<!-- home page -->
+{% extends "base.html" %}
+{% load static %}
+{% block title %}TEST pyknow Factorial{% endblock %}
+{% block container %}
+    <h1>TEST pyknow Factorial</h1>
+    <pre>{{facts}}</pre>
+    <img src="{% static "graph/factorial.gv.svg" %}" class="img-responsive" alt="Graph"> 
+    <pre>{{network}}</pre>
+{% endblock %}
+
+
+
+
+

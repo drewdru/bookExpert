@@ -1,0 +1,16 @@
+<!-- home page -->
+{% extends "base.html" %}
+{% load static %}
+{% block title %}TEST pyknow Greetings{% endblock %}
+{% block container %}
+    <h1>TEST pyknow Greetings</h1>
+    <h3>Hi {{name}}! How is the weather in {{location}}?</h3>
+    <h4>Answer to me <a href="https://t.me/drewdru">@drewdru</a></h4>
+    <pre>{{facts}}</pre>
+    <img src="{% static "graph/greetings.gv.svg" %}" class="img-responsive" alt="Graph"> 
+{% endblock %}
+
+
+
+
+

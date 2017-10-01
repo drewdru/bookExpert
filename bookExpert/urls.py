@@ -14,7 +14,6 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 from django.conf.urls import include, url
-from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -26,6 +25,5 @@ handler503 = 'main.views.error_50x_page'
 handler504 = 'main.views.error_50x_page'
 
 urlpatterns = [
-    url(r'^admin/', admin.site.urls),
     url(r'^bookExpert/', include('main.urls')),
 ]

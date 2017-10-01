@@ -1,0 +1,20 @@
+<!-- home page -->
+{% extends "base.html" %}
+{% load static %}
+{% block title %}TEST pyknow Fish{% endblock %}
+{% block container %}
+    <h1>TEST pyknow Fish</h1>
+    {% if fishName %}
+        <h3>This is {{fishName}}!</h3>
+    {% else %}
+        <h3>I don't know what is it!</h3>
+    {% endif %}
+    <pre>{{facts}}</pre>
+    <img src="{% static "graph/fish.gv.svg" %}"
+        class="img-responsive" alt="Graph"> 
+{% endblock %}
+
+
+
+
+

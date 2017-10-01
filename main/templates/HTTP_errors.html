@@ -1,0 +1,29 @@
+<!-- errors page -->
+{% extends "base.html" %}
+{% block title %}Error {{ code }}{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="error-template">
+                    {% if code == "403" %}
+                        <h1>Ошибка {{ code }} - доступ запрещен</h1>
+                        <div class="error-details">
+                            <h3>Простите, но увас недостаточно прав</h3><br>
+                        </div>
+                        <!--<div class="error-actions">-->
+                            <!--<p><a href="/accounts/login/">Войдите</a> в свою учётную запись или обратитесь к администратору</p>-->
+                        <!--</div>-->
+                        <div class="error-actions">
+                            <a href="/" class="btn btn-default btn-lg"><span class="glyphicon glyphicon-home"></span></a>
+                            <a href="/accounts/login/?next={{next}}" class="btn btn-primary btn-lg"><span class="glyphicon glyphicon-log-in"></span> Войти</a>
+                            <a href="/" class="btn btn-default btn-lg"><span class="glyphicon glyphicon-envelope"></span> Обратиться к администратору</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}
