@@ -8,12 +8,10 @@ from main.pyknowModels import fish
 @never_cache
 @never_ever_cache
 def fishView(request):
-    print("I am HERE") # BUG: NEED DISABLE CACHE
     fishEngine = fish.FishEngine()
     fishEngine.setRequest(request)
     fishEngine.reset()
     fishEngine.run()
-    print("I am HERE") # BUG: NEED DISABLE CACHE
     if not hasattr(fishEngine, 'response'):
         fishEngine.getGraph()
         return render(request, 'labs/fish.html', {
