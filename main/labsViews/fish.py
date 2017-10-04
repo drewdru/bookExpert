@@ -3,18 +3,18 @@ from django.template import Context, RequestContext
 from django.views.decorators.cache import never_cache
 from django.core.cache import cache
 from main.labsViews.cache_decorator import never_ever_cache
-from main.pyknowModels import fish
+from main.pyknowModels.fish import fishEngine
 
 @never_cache
 @never_ever_cache
 def fishView(request):
-    fishEngine = fish.FishEngine()
-    fish.MODULE_REQUEST = request
-    fishEngine.reset()
-    fishEngine.run()
-    if not hasattr(fishEngine, 'response'):
-        fishEngine.getGraph()
+    fishEng = fishEngine.FishEngine()
+    fishEngine.MODULE_REQUEST = request
+    fishEng.reset()
+    fishEng.run()
+    if not hasattr(fishEng, 'response'):
+        fishEng.getGraph()
         return render(request, 'labs/fish.html', {
-            'facts': fishEngine.facts,
+            'facts': fishEng.facts,
         })
-    return fishEngine.response
+    return fishEng.response

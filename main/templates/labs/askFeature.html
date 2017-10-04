@@ -1,0 +1,41 @@
+<!-- generate page for change table -->
+{% extends "base.html" %}
+{% load static %}
+{% load mainFilters %}
+{% block title %}Hello{% endblock %}
+
+{% block container %}
+    <h1>{{question}}</h1>
+    <form "form-radio" id="form-is_actual-change" action="{{url}}" method="post">
+        {% csrf_token %}
+        {% for feature in features %}
+        <div class="radio"><label>
+            <input type="radio" name="{{answer_id}}"
+                value="{{feature.feature}}">{{feature.feature}}
+        </label></div>    
+        {% endfor %}
+        <div class="radio"><label>
+            <input type="radio" name="{{answer_id}}"
+                value="{{featuresToIgnore}}">fish hasn't this features
+        </label></div>
+        {% for postParam in request|postParameters %}
+            <input class="form-control hidden" type="text"
+                value="{{postParam.value}}" name="{{postParam.key}}"
+                id="{{postParam.key}}">
+        {% endfor%}
+        <button type="submit" class="btn btn-default">Submit</button>
+    </form>
+    <!-- <form id="form-table-change" action="{{url}}" method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="{{answer_id}}">Answer:</label>
+            <input class="form-control" name="{{answer_id}}" id="{{answer_id}}">
+        </div>
+        {% for postParam in request|postParameters %}
+            <input class="form-control hidden" type="text"
+                value="{{postParam.value}}" name="old_{{postParam.key}}"
+                id="old_{{postParam.key}}">
+        {% endfor%}
+        <button type="submit" class="btn btn-default">Submit</button>
+    </form> -->
+{% endblock %}

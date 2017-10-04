@@ -1,135 +1,21 @@
 from django.db import models
 from django.shortcuts import render
-from django.template import Context, RequestContext
+from django.template import Context
 from django.http.request import HttpRequest
-from main.djangoModels.fish import fish
-from main.djangoModels.fish import fishDetachment
-from main.djangoModels.fish import fishKind
-from main.djangoModels.fish import fishFeature
 
+from main.djangoModels.fish import fishFeature
+from main.djangoModels.fish import fishKind
+
+
+from .facts.features import Features
+from .facts.kinds import Kinds
 
 import pyknow
 import random
 
-# def objGeneratorGenerator(objList):
-#     for data in objList:
-#         yield data
 MODULE_REQUEST = HttpRequest()
-
-def listToStr(fieldList):
-    fields = []
-    for field in fieldList:
-        fields.append(str(field))
-    return '&'.join(fields)
-
-
-class FishFact(pyknow.Fact):
-    @classmethod
-    def from_django_model(cls, obj):
-        detachments = listToStr(obj.detachments.all())
-        features = listToStr(obj.features.all())
-        kinds = listToStr(obj.kinds.all())
-        return cls(fishName=obj.fishName,
-                   detachments=detachments,
-                   features=features,
-                   kinds=kinds)
-
-    @classmethod
-    def getFishFacts(cls):
-        factList = []
-        for fishObject in fish.Fish.objects.all():
-            factList.append(FishFact.from_django_model(fishObject))
-        return factList
-
-    def save_to_db(self):
-        return fish.Fish.objects.create(**self)
-
-
-class Detachments(pyknow.Fact):
-    @classmethod
-    def from_django_model(cls, obj):
-        features = listToStr(obj.features.all())
-        kinds = listToStr(obj.kinds.all())
-        return cls(detachment=obj.detachment,
-                   features=features,
-                   kinds=kinds)
-
-    @classmethod
-    def getNotFishDetachments(cls):
-        detachmentList = []
-        for detachment in fishDetachment.FishDetachment.objects.all():
-            detachmentList.append(pyknow.NOT(
-                Detachments.from_django_model(detachment)))
-        return detachmentList
-
-    def save_to_db(self):
-        return fishDetachment.FishDetachment.objects.create(**self)
-
-
-class Kinds(pyknow.Fact):
-    @classmethod
-    def from_django_model(cls, obj):
-        facts = []
-        for feature in obj.features.all():
-            facts.append(Features(feature=feature))
-        facts.append(cls(kind=obj.kind))
-        return facts
-
-    @classmethod
-    def getIgnoreKinds(cls):
-        ignoreKinds = MODULE_REQUEST.POST.get('ignoreKinds', '')
-        kindsList = []
-        for kind in ignoreKinds.split('&'):
-            for kinds in fishKind.FishKind.objects.all().filter(kind=kind):
-                kindsList.append(pyknow.AND(*Kinds.from_django_model(kinds)))
-        return kindsList if len(kindsList) > 0 else [pyknow.Fact()]
-
-    @classmethod
-    def getFishKinds(cls):
-        kindsList = []
-        for kinds in fishKind.FishKind.objects.all():
-            kindsList.append(pyknow.AND(*Kinds.from_django_model(kinds)))
-        return kindsList
-
-    @classmethod
-    def getNotFishKinds(cls):
-        kindsList = []
-        for kinds in fishKind.FishKind.objects.all():
-            kindsList.append(pyknow.NOT(pyknow.AND(
-                *Kinds.from_django_model(kinds))))
-        return kindsList
-
-    def save_to_db(self):
-        return fishKind.FishKind.objects.create(**self)
-
-
-class Features(pyknow.Fact):
-    @classmethod
-    def from_django_model(cls, obj):
-        return cls(feature=obj.feature)
-
-    @classmethod
-    def getIgnoreFeatures(cls):
-        ignoreFeatures = MODULE_REQUEST.POST.get('ignoreFeatures', '')
-        featuresList = []
-        for feature in ignoreFeatures.split('&'):
-            featuresList.append(cls(feature=feature))
-        return featuresList
-
-    @classmethod
-    def getFishFeatures(cls):
-        featuresList = []
-        for feature in fishFeature.FishFeature.objects.all():
-            featuresList.append(Features.from_django_model(feature))
-        return featuresList
-
-    @classmethod
-    def getNotFishFeatures(cls):
-        featuresList = []
-        for feature in fishFeature.FishFeature.objects.all():
-            featuresList.append(pyknow.NOT(
-                Features.from_django_model(feature)))
-        return featuresList
+FISH_FEATURES = fishFeature.FishFeature.objects.all()
+FISH_KIND = fishKind.FishKind.objects.all()
 
 class FishEngine(pyknow.KnowledgeEngine):
     def declareFeatures(self, features):
@@ -157,8 +43,9 @@ class FishEngine(pyknow.KnowledgeEngine):
 
     # TODO: don't go into if kindsList is clear
     @pyknow.Rule(pyknow.Fact(action='consultationsKind'),
-            pyknow.AND(pyknow.NOT(*Kinds.getIgnoreKinds()),
-            pyknow.OR(*Kinds.getNotFishKinds())))
+            pyknow.AND(pyknow.NOT(*Kinds.getIgnoreKinds(
+                MODULE_REQUEST, FISH_KIND)),
+            pyknow.OR(*Kinds.getNotFishKinds(FISH_KIND))))
     def askKind(self):
         newKind = MODULE_REQUEST.POST.get('kind', '')
         oldKinds = MODULE_REQUEST.POST.get('oldKinds', '')
@@ -173,7 +60,7 @@ class FishEngine(pyknow.KnowledgeEngine):
             return
 
         kindsList = []
-        for facts in Kinds.getFishKinds():
+        for facts in Kinds.getFishKinds(FISH_KIND):
             for fact in facts:
                 if 'kind' in fact and  fact['kind'] not in oldKinds.split('&') and\
                         fact['kind'] not in ignoreKinds.split('&'):
@@ -192,7 +79,7 @@ class FishEngine(pyknow.KnowledgeEngine):
         })
 
     @pyknow.Rule(pyknow.Fact(action='fishing'),
-            pyknow.OR(*Kinds.getFishKinds()))
+            pyknow.OR(*Kinds.getFishKinds(FISH_KIND)))
     def answerKind(self, **kwargs):
         self.getGraph()
         try:
@@ -215,8 +102,8 @@ class FishEngine(pyknow.KnowledgeEngine):
         MODULE_REQUEST.POST._mutable = mutable
 
     @pyknow.Rule(pyknow.Fact(action='consultationsFeature'),
-            pyknow.AND(pyknow.NOT(*Features.getIgnoreFeatures()),
-            pyknow.OR(*Features.getNotFishFeatures())))
+            pyknow.AND(pyknow.NOT(*Features.getIgnoreFeatures(MODULE_REQUEST)),
+            pyknow.OR(*Features.getNotFishFeatures(FISH_FEATURES))))
     def askFeature(self):
         newFeature = MODULE_REQUEST.POST.get('feature', '')
         oldFeatures = MODULE_REQUEST.POST.get('oldFeatures', '')
@@ -231,7 +118,7 @@ class FishEngine(pyknow.KnowledgeEngine):
             return
 
         featuresList = []
-        for fact in Features.getFishFeatures():
+        for fact in Features.getFishFeatures(FISH_FEATURES):
             if fact['feature'] not in oldFeatures.split('&') and\
                     fact['feature'] not in ignoreFeatures.split('&'):
                 featuresList.append(fact)                
@@ -249,7 +136,7 @@ class FishEngine(pyknow.KnowledgeEngine):
         })
 
     @pyknow.Rule(pyknow.Fact(action='fishing'),
-            pyknow.OR(*Features.getFishFeatures()))
+            pyknow.OR(*Features.getFishFeatures(FISH_FEATURES)))
     def answerFeature(self, **kwargs):
         self.getGraph()
         try:
@@ -263,19 +150,19 @@ class FishEngine(pyknow.KnowledgeEngine):
             'url': '/bookExpert/fish', 
         })
 
-    @pyknow.Rule(pyknow.Fact(action='fishing'),
-            pyknow.OR(*FishFact.getFishFacts()))
-    def answerFish(self, **kwargs):
-        self.getGraph()
-        try:
-            fishName = self.facts.get(self.facts.last_index-1)['fishName']
-        except Exception as error:
-            print(error)
-            fishName = False
-        self.response = render(MODULE_REQUEST, 'labs/fish.html', {
-            'fishName': fishName,
-            'facts': self.facts,
-        })
+    # @pyknow.Rule(pyknow.Fact(action='fishing'),
+    #         pyknow.OR(*FishFact.getFishFacts()))
+    # def answerFish(self, **kwargs):
+    #     self.getGraph()
+    #     try:
+    #         fishName = self.facts.get(self.facts.last_index-1)['fishName']
+    #     except Exception as error:
+    #         print(error)
+    #         fishName = False
+    #     self.response = render(MODULE_REQUEST, 'labs/fish.html', {
+    #         'fishName': fishName,
+    #         'facts': self.facts,
+    #     })
 
     def getGraph(self, path="../full_static/graph/fish.gv", view=False):
         graph = self.matcher.show_network()

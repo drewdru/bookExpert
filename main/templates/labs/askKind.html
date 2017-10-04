@@ -1,0 +1,28 @@
+<!-- generate page for change table -->
+{% extends "base.html" %}
+{% load static %}
+{% load mainFilters %}
+{% block title %}Hello{% endblock %}
+
+{% block container %}
+    <h1>{{question}}</h1>
+    <form "form-radio" id="form-is_actual-change" action="{{url}}" method="post">
+        {% csrf_token %}
+        {% for kind in kinds %}
+        <div class="radio"><label>
+            <input type="radio" name="{{answer_id}}"
+                value="{{kind.kind}}">{{kind.kind}}
+        </label></div>    
+        {% endfor %}
+        <div class="radio"><label>
+            <input type="radio" name="{{answer_id}}"
+                value="{{kindsStr}}">fish hasn't this kinds
+        </label></div>
+        {% for postParam in request|postParameters %}
+            <input class="form-control hidden" type="text"
+                value="{{postParam.value}}" name="{{postParam.key}}"
+                id="{{postParam.key}}">
+        {% endfor%}
+        <button type="submit" class="btn btn-default">Submit</button>
+    </form>
+{% endblock %}
