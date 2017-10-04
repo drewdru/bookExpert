@@ -12,6 +12,17 @@
     <pre>{{facts}}</pre>
     <img src="{% static "graph/fish.gv.svg" %}"
         class="img-responsive" alt="Graph"> 
+<!-- 
+    <h1>Продолжить?</h1>
+    <form "form-radio" id="form-is_actual-change" action="{{url}}" method="post">
+         for postParam in request|postParameters 
+            <input class="form-control hidden" type="text"
+                value="{{postParam.value}}" name="{{postParam.key}}"
+                id="{{postParam.key}}">
+         endfor
+        <button type="submit" class="btn btn-default">Submit</button>
+    </form> -->
+
 {% endblock %}
 
 

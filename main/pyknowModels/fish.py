@@ -1,6 +1,7 @@
 from django.db import models
 from django.shortcuts import render
 from django.template import Context, RequestContext
+from django.http.request import HttpRequest
 from main.djangoModels.fish import fish
 from main.djangoModels.fish import fishDetachment
 from main.djangoModels.fish import fishKind
@@ -13,6 +14,7 @@ import random
 # def objGeneratorGenerator(objList):
 #     for data in objList:
 #         yield data
+MODULE_REQUEST = HttpRequest()
 
 def listToStr(fieldList):
     fields = []
@@ -67,16 +69,34 @@ class Detachments(pyknow.Fact):
 class Kinds(pyknow.Fact):
     @classmethod
     def from_django_model(cls, obj):
-        features = listToStr(obj.features.all())
-        return cls(kind=obj.kind,
-                   features=features)
+        facts = []
+        for feature in obj.features.all():
+            facts.append(Features(feature=feature))
+        facts.append(cls(kind=obj.kind))
+        return facts
+
+    @classmethod
+    def getIgnoreKinds(cls):
+        ignoreKinds = MODULE_REQUEST.POST.get('ignoreKinds', '')
+        kindsList = []
+        for kind in ignoreKinds.split('&'):
+            for kinds in fishKind.FishKind.objects.all().filter(kind=kind):
+                kindsList.append(pyknow.AND(*Kinds.from_django_model(kinds)))
+        return kindsList if len(kindsList) > 0 else [pyknow.Fact()]
+
+    @classmethod
+    def getFishKinds(cls):
+        kindsList = []
+        for kinds in fishKind.FishKind.objects.all():
+            kindsList.append(pyknow.AND(*Kinds.from_django_model(kinds)))
+        return kindsList
 
     @classmethod
     def getNotFishKinds(cls):
         kindsList = []
         for kinds in fishKind.FishKind.objects.all():
-            kindsList.append(pyknow.NOT(
-                Detachments.from_django_model(kinds)))
+            kindsList.append(pyknow.NOT(pyknow.AND(
+                *Kinds.from_django_model(kinds))))
         return kindsList
 
     def save_to_db(self):
@@ -88,6 +108,13 @@ class Features(pyknow.Fact):
     def from_django_model(cls, obj):
         return cls(feature=obj.feature)
 
+    @classmethod
+    def getIgnoreFeatures(cls):
+        ignoreFeatures = MODULE_REQUEST.POST.get('ignoreFeatures', '')
+        featuresList = []
+        for feature in ignoreFeatures.split('&'):
+            featuresList.append(cls(feature=feature))
+        return featuresList
 
     @classmethod
     def getFishFeatures(cls):
@@ -104,76 +131,122 @@ class Features(pyknow.Fact):
                 Features.from_django_model(feature)))
         return featuresList
 
-    def save_to_db(self):
-        return fishFeature.FishFeature.objects.create(**self)
-
 class FishEngine(pyknow.KnowledgeEngine):
-    def setRequest(self, request):
-        self.request = request
-
-    # @classmethod
-    # def declareCls(cls, obj):
-    #     cls.declare(obj)
     def declareFeatures(self, features):
         for feature in features:
-            # self.declare(pyknow.Fact(location=location))
             self.declare(Features(feature=feature))
+
+    def declareKinds(self, kinds):
+        for kind in kinds:
+            self.declare(Kinds(kind=kind))
 
     @pyknow.DefFacts()
     def _initial_action(self):
         yield pyknow.Fact(action="fishing")
-        yield pyknow.Fact(action="consultations")
+        yield pyknow.Fact(action="consultationsFeature")
+        yield pyknow.Fact(action="consultationsKind")
+        
+    
+    def changeKindsPostParametrs(self, oldKinds, ignoreKinds):
+        mutable = MODULE_REQUEST.POST._mutable
+        MODULE_REQUEST.POST._mutable = True
+        MODULE_REQUEST.POST['oldKinds'] = oldKinds
+        MODULE_REQUEST.POST['ignoreKinds'] = ignoreKinds
+        MODULE_REQUEST.POST.pop('kind')
+        MODULE_REQUEST.POST._mutable = mutable
 
-    # @pyknow.DefFacts()
-    # def default_data(self):
-    #     yield FishFact.from_django_model(fish.Fish.objects.all().first())
+    # TODO: don't go into if kindsList is clear
+    @pyknow.Rule(pyknow.Fact(action='consultationsKind'),
+            pyknow.AND(pyknow.NOT(*Kinds.getIgnoreKinds()),
+            pyknow.OR(*Kinds.getNotFishKinds())))
+    def askKind(self):
+        newKind = MODULE_REQUEST.POST.get('kind', '')
+        oldKinds = MODULE_REQUEST.POST.get('oldKinds', '')
+        ignoreKinds = MODULE_REQUEST.POST.get('ignoreKinds', '')
+        if newKind != '':
+            if oldKinds == '':
+                oldKinds = newKind
+            else:
+                oldKinds += '&{}'.format(newKind)
+            self.changeKindsPostParametrs(oldKinds, ignoreKinds)
+            self.declareKinds(oldKinds.split('&'))
+            return
 
-    # @pyknow.Rule(pyknow.Fact(action='consultations'),
-    #     # pyknow.AND(
-    #     #     pyknow.NOT(pyknow.Fact(location=pyknow.W()),
-    #         # pyknow.NOT(pyknow.Fact(action=pyknow.W()))
-    #         # pyknow.NOT(Fish.from_django_model(fish.Fish.objects.all().first()))
-    #         # pyknow.NOT(pyknow.Fact(fishName=Fish.from_django_model(
-    #         #     fish.Fish.objects.all().first())['fishName'])
-    #         pyknow.NOT(pyknow.Fact(fishName=pyknow.W()))
-    #     )
-    @pyknow.Rule(pyknow.Fact(action='consultations'),
-            pyknow.OR(*Features.getNotFishFeatures()))
-    def askDetachment(self):
-        # TODO: Declare NEW Detechments FACT and ask NEXT
-        oldFeature = self.request.POST.get("features", None)
-        if oldFeature is not None:
-            print(oldFeature)
-            self.declareFeatures(oldFeature.split('&'))
-        # else:
-        #     self.declareFeatures(['fins with pink feathers', 'test'])
-        # # getNewFeauters
+        kindsList = []
+        for facts in Kinds.getFishKinds():
+            for fact in facts:
+                if 'kind' in fact and  fact['kind'] not in oldKinds.split('&') and\
+                        fact['kind'] not in ignoreKinds.split('&'):
+                    kindsList.append(fact)                
+        kindsList = kindsList[0:5]
+        kindsStr = ''
+        for kind in kindsList:
+            kindsStr += '&{}'.format(kind['kind'])
 
-        # notAskedFeatures = ''
-        # print(self.facts.items())
-        # featuresList = []
-        # for index, fact in enumerate(self.facts):
-        #     temp = self.facts.get(index)
-        #     if isinstance(temp, Features):
-        #         featuresList.append(temp)
-        # print(featuresList[0])
-        # print(Features.getFishFeatures()[0])
-        # print(featuresList[0] in Features.getFishFeatures()[0])
-        # print('featuresList:', featuresList)
-        # newFeatures = [x for x in Features.getFishFeatures() if x not in featuresList]
-        # print('newFeatures:', newFeatures)
-        featuresList = []
-        for fact in Features.getFishFeatures():
-            if fact.__factid__ is None:
-                featuresList.append(fact)
-
-        self.response = render(self.request, 'ask.html', {
-            'question': "Does the fish has a feature: {}?".format(
-                random.choice(featuresList)['feature']),
-            'answer_id': 'feature',
-            'url': '/bookExpert/fish',
+        self.response = render(MODULE_REQUEST, 'labs/askKind.html', {
+            'question': 'Does the fish has one of the next kinds?',
+            'kinds': kindsList,
+            'kindsStr': kindsStr,
+            'answer_id': 'kind',
+            'url': '/bookExpert/fish', 
         })
 
+    @pyknow.Rule(pyknow.Fact(action='fishing'),
+            pyknow.OR(*Kinds.getFishKinds()))
+    def answerKind(self, **kwargs):
+        self.getGraph()
+        try:
+            fishName = self.facts.get(self.facts.last_index-1)['fishName']
+        except Exception as error:
+            print(error)
+            fishName = False
+        self.response = render(MODULE_REQUEST, 'labs/fish.html', {
+            'fishName': fishName,
+            'facts': self.facts,
+        })
+
+
+    def changeFeaturePostParametrs(self, oldFeatures, ignoreFeatures):
+        mutable = MODULE_REQUEST.POST._mutable
+        MODULE_REQUEST.POST._mutable = True
+        MODULE_REQUEST.POST['oldFeatures'] = oldFeatures
+        MODULE_REQUEST.POST['ignoreFeatures'] = ignoreFeatures
+        MODULE_REQUEST.POST.pop('feature')
+        MODULE_REQUEST.POST._mutable = mutable
+
+    @pyknow.Rule(pyknow.Fact(action='consultationsFeature'),
+            pyknow.AND(pyknow.NOT(*Features.getIgnoreFeatures()),
+            pyknow.OR(*Features.getNotFishFeatures())))
+    def askFeature(self):
+        newFeature = MODULE_REQUEST.POST.get('feature', '')
+        oldFeatures = MODULE_REQUEST.POST.get('oldFeatures', '')
+        ignoreFeatures = MODULE_REQUEST.POST.get('ignoreFeatures', '')
+        if newFeature != '':
+            if oldFeatures == '':
+                oldFeatures = newFeature
+            else:
+                oldFeatures += '&{}'.format(newFeature)
+            self.changeFeaturePostParametrs(oldFeatures, ignoreFeatures)
+            self.declareFeatures(oldFeatures.split('&'))
+            return
+
+        featuresList = []
+        for fact in Features.getFishFeatures():
+            if fact['feature'] not in oldFeatures.split('&') and\
+                    fact['feature'] not in ignoreFeatures.split('&'):
+                featuresList.append(fact)                
+        featuresList = featuresList[0:5]
+        featuresToIgnore = ''
+        for feature in featuresList:
+            featuresToIgnore += '&{}'.format(feature['feature'])
+
+        self.response = render(MODULE_REQUEST, 'labs/askFeature.html', {
+            'question': 'Does the fish has one of the next features?',
+            'features': featuresList,
+            'featuresToIgnore': featuresToIgnore,
+            'answer_id': 'feature',
+            'url': '/bookExpert/fish', 
+        })
 
     @pyknow.Rule(pyknow.Fact(action='fishing'),
             pyknow.OR(*Features.getFishFeatures()))
@@ -184,11 +257,11 @@ class FishEngine(pyknow.KnowledgeEngine):
         except Exception as error:
             print(error)
             fishName = False
-        self.response = render(self.request, 'labs/fish.html', {
+        self.response = render(MODULE_REQUEST, 'labs/fish.html', {
             'fishName': fishName,
             'facts': self.facts,
+            'url': '/bookExpert/fish', 
         })
-
 
     @pyknow.Rule(pyknow.Fact(action='fishing'),
             pyknow.OR(*FishFact.getFishFacts()))
@@ -199,7 +272,7 @@ class FishEngine(pyknow.KnowledgeEngine):
         except Exception as error:
             print(error)
             fishName = False
-        self.response = render(self.request, 'labs/fish.html', {
+        self.response = render(MODULE_REQUEST, 'labs/fish.html', {
             'fishName': fishName,
             'facts': self.facts,
         })

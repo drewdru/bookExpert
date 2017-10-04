@@ -13,5 +13,6 @@ def getParameters(request):
 def postParameters(request):
     params_list = []
     for key, value in request.POST.items():
-        params_list.append({'key': key, 'value': value})
+        if key != 'csrfmiddlewaretoken':
+            params_list.append({'key': key, 'value': value})
     return params_list

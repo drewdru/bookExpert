@@ -9,7 +9,7 @@ from main.pyknowModels import fish
 @never_ever_cache
 def fishView(request):
     fishEngine = fish.FishEngine()
-    fishEngine.setRequest(request)
+    fish.MODULE_REQUEST = request
     fishEngine.reset()
     fishEngine.run()
     if not hasattr(fishEngine, 'response'):
