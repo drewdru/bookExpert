@@ -26,4 +26,4 @@ services:
     #command: bash -c "python manage.py migrate && uwsgi uwsgi.ini"
     command: bash -c "uwsgi uwsgi.ini"
     extra_hosts:
-       - "map-db:84.22.153.127"
+       - "map-db:x.x.x.x"

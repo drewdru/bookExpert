@@ -14,10 +14,10 @@
                 value="{{feature.feature}}">{{feature.feature}}
         </label></div>    
         {% endfor %}
-        <div class="radio"><label>
+        <!-- <div class="radio"><label>
             <input type="radio" name="{{answer_id}}"
                 value="{{featuresToIgnore}}">fish hasn't this features
-        </label></div>
+        </label></div> -->
         {% for postParam in request|postParameters %}
             <input class="form-control hidden" type="text"
                 value="{{postParam.value}}" name="{{postParam.key}}"
