@@ -10,7 +10,7 @@ class Features(pyknow.Fact):
         ignoreFeatures = request.POST.get('ignoreFeatures', '')
         featuresList = []
         for feature in ignoreFeatures.split('&'):
-            featuresList.append(cls(feature=feature))
+            featuresList.append(pyknow.NOT(cls(feature=feature)))
         return featuresList
 
     @classmethod

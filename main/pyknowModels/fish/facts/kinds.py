@@ -7,8 +7,8 @@ class Kinds(pyknow.Fact):
     def from_django_model(cls, obj):
         facts = []
         for feature in obj.features.all():
-            facts.append(Features(feature=feature))
-        facts.append(cls(kind=obj.kind))
+            facts.append(Features(feature=feature.feature))
+        # facts.append(cls(kind=obj.kind))
         return facts
 
     @classmethod
@@ -25,6 +25,7 @@ class Kinds(pyknow.Fact):
         kindsList = []
         for kinds in fishFeatures:
             kindsList.append(pyknow.AND(*Kinds.from_django_model(kinds)))
+        print(kindsList)
         return kindsList
 
     @classmethod

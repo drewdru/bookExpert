@@ -16,7 +16,7 @@
         {% endfor %}
         <div class="radio"><label>
             <input type="radio" name="{{answer_id}}"
-                value="{{featuresToIgnore}}">fish hasn't this features
+                value="!feature!{{featuresToIgnore}}">fish hasn't this features
         </label></div>
         {% for postParam in request|postParameters %}
             <input class="form-control hidden" type="text"
@@ -25,6 +25,7 @@
         {% endfor%}
         <button type="submit" class="btn btn-default">Submit</button>
     </form>
+    <pre>{{facts}}</pre>
     <!-- <form id="form-table-change" action="{{url}}" method="post">
         {% csrf_token %}
         <div class="form-group">
