@@ -5,7 +5,6 @@ from main.pyknowEngines import factorial
 def factorialView(request):
     factorialEngine = factorial.ComputeFactorial()
     factorialEngine.reset()
-    factorialEngine.declare(factorial.Factorial(1, 1))
     factorialEngine.run(10)
     factorialEngine.getGraph()
     return render(request, 'labs/factorial.html', {

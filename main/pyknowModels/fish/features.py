@@ -1,4 +1,5 @@
 import pyknow
+from main.djangoModels.fish.fishFeature import FishFeature
 
 class Features(pyknow.Fact):
     @classmethod
@@ -14,16 +15,16 @@ class Features(pyknow.Fact):
         return featuresList
 
     @classmethod
-    def getFishFeatures(cls, fishFeatures):
+    def getFishFeatures(cls):
         featuresList = []
-        for feature in fishFeatures:
+        for feature in FishFeature.objects.all():
             featuresList.append(Features.from_django_model(feature))
         return featuresList
 
     @classmethod
-    def getNotFishFeatures(cls, fishFeatures):
+    def getNotFishFeatures(cls):
         featuresList = []
-        for feature in fishFeatures:
+        for feature in FishFeature.objects.all():
             featuresList.append(pyknow.NOT(
                 Features.from_django_model(feature)))
         return featuresList
