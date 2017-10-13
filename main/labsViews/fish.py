@@ -3,7 +3,7 @@ from django.template import Context, RequestContext
 from django.views.decorators.cache import never_cache
 from django.core.cache import cache
 from main.labsViews.cache_decorator import never_ever_cache
-from main.pyknowModels.fish import fishEngine
+from main.pyknowEngines.fish import fishEngine
 
 @never_cache
 @never_ever_cache

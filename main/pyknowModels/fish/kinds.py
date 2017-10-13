@@ -12,7 +12,7 @@ class Kinds(pyknow.Fact):
         return facts, obj.kind
 
     @classmethod
-    def getIgnoreKinds(cls, request, fishFeatures):
+    def getIgnoreKindsFeatures(cls, request, fishFeatures):
         ignoreKinds = request.POST.get('ignoreKinds', '')
         kindsList = []
         for kind in ignoreKinds.split('&'):
@@ -21,19 +21,11 @@ class Kinds(pyknow.Fact):
         return kindsList if kindsList else [pyknow.Fact()]
 
     @classmethod
-    def getFishKinds(cls, fishFeatures):
+    def getKindsFeatures(cls, fishFeatures):
         kindsList = []
         for kinds in fishFeatures:
             facts, kindName = Kinds.from_django_model(kinds)
-            print('-'*20)
-            print(Features(features=pyknow.AND(*facts, cls('y' << pyknow.W())), 
-                    kind=kindName << pyknow.W()))
-            print('-'*20)
-            # kindsList.append(Features(features=pyknow.AND(*facts), kind=kindName << pyknow.W()))
             kindsList.append(pyknow.AND(*facts))
-            # kindsList.append('light' << pyknow.Fact(kindName))
-                # cls(kind=kindName)))
-        print(kindsList)
         return kindsList
 
     @classmethod

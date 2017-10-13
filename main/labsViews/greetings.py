@@ -1,4 +1,4 @@
-from main.pyknowModels import greetings
+from main.pyknowEngines import greetings
 from django.shortcuts import render
 from django.template import Context, RequestContext
 from django.views.decorators.cache import never_cache

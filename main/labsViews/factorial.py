@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.template import Context, RequestContext
-from main.pyknowModels import factorial
+from main.pyknowEngines import factorial
 
 def factorialView(request):
     factorialEngine = factorial.ComputeFactorial()
