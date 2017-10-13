@@ -1,3 +1,5 @@
+# https://github.com/vulogov/clips6/
+# http://pyclips.sourceforge.net/web/?q=node/25 
 from django.db import models
 from django.shortcuts import render
 from django.template import Context
@@ -42,10 +44,9 @@ class FishEngine(pyknow.KnowledgeEngine):
     @pyknow.Rule(pyknow.Fact(action='consultationsFeature'),
             pyknow.OR(*Features.getNotFishFeatures(FISH_FEATURES)),
             salience=3)
-
             # pyknow.AND(*Features.getIgnoreFeatures(MODULE_REQUEST)),
             # pyknow.OR(*Features.getNotFishFeatures(FISH_FEATURES)))
-    def askFeature(self):
+    def askFeature(self, **kwargs):
         newFeature = MODULE_REQUEST.POST.get('feature', '')
         oldFeatures = MODULE_REQUEST.POST.get('oldFeatures', '')
         ignoreFeatures = MODULE_REQUEST.POST.get('ignoreFeatures', '')
@@ -66,17 +67,21 @@ class FishEngine(pyknow.KnowledgeEngine):
             return
 
         featuresList = []
-        for fact in Features.getFishFeatures(FISH_FEATURES):
-            if fact['feature'] not in oldFeatures.split('&') and\
-                    fact['feature'] not in ignoreFeatures.split('&'):
-                featuresList.append(fact)                
+        # for fact in Features.getFishFeatures(FISH_FEATURES):
+        #     if fact['feature'] not in oldFeatures.split('&') and\
+        #             fact['feature'] not in ignoreFeatures.split('&'):
+        #         featuresList.append(fact)
+        for feature in FISH_FEATURES:
+            if str(feature.id) not in oldFeatures.split('&') and\
+                    str(feature.id) not in ignoreFeatures.split('&'):
+                featuresList.append(feature.id)
         # featuresList = featuresList[0:5]
         featuresToIgnore = ''
         for feature in featuresList:
             if featuresToIgnore == '':
-                featuresToIgnore = feature['feature']
+                featuresToIgnore = '{}'.format(feature)
             else:
-                featuresToIgnore += '&{}'.format(feature['feature'])
+                featuresToIgnore += '&{}'.format(feature)
 
         self.response = render(MODULE_REQUEST, 'labs/askFeature.html', {
             'question': 'Does the fish has one of the next features?',
@@ -87,10 +92,35 @@ class FishEngine(pyknow.KnowledgeEngine):
             'url': '/bookExpert/fish', 
         })
 
+    @pyknow.Rule(pyknow.Fact(action='fishing'),
+            pyknow.OR(*Kinds.getFishKinds(FISH_KIND)),
+            salience=2)
+    def answerKind(self, **kwargs):
+        featureList = []
+        for key, value in kwargs.items():
+            if key.startswith('feature_'):
+                featureList.append(int(value['feature']))
+        kinds = FISH_KIND.filter(features__in=featureList)
+        kind= random.choice(kinds)
+        self.response = render(MODULE_REQUEST, 'labs/fish.html', {
+            'fishName': kind.kind,
+            'facts': self.facts,
+            'url': '/bookExpert/fish', 
+        })
+
+    def getGraph(self, path="../full_static/graph/fish.gv", view=False):
+        graph = self.matcher.show_network()
+        graph.format = 'svg'
+        graph.render(path, view=False)
+
     # @pyknow.Rule(pyknow.Fact(action='fishing'),
-    #         *Kinds.getFishKinds(FISH_KIND),
+    #         pyknow.OR(pyknow.AND(Features(feature='lips with 4 mustaches'),
+    #                 Features(feature='fish swim in rivers or lakes')),
+    #             pyknow.AND(Features(feature='lips with 4 mustaches'),
+    #                 Features(feature='fish swim in rivers or lakes')),
+    #         ),
     #         salience=2)
-    # def answerFeature(self, **kwargs):
+    # def answerTest(self, **kwargs):
     #     self.getGraph()
     #     try:
     #         fishName = self.facts.get(self.facts.last_index-1)['fishName']
@@ -98,53 +128,12 @@ class FishEngine(pyknow.KnowledgeEngine):
     #         print(error)
     #         fishName = False
     #     self.response = render(MODULE_REQUEST, 'labs/fish.html', {
-    #         'fishName': fishName,
+    #         'fishName': '''fish with lips with 4 mustaches AND fish swim in \
+    #                         rivers or lake OR lips with 4 mustaches AND \
+    #                         fish swim in rivers or lakes''',
     #         'facts': self.facts,
     #         'url': '/bookExpert/fish', 
     #     })
-
-    @pyknow.Rule(pyknow.Fact(action='fishing'),
-            pyknow.OR(*Kinds.getFishKinds(FISH_KIND)),
-            salience=2)
-    def answerCarp(self, **kwargs):
-        print(kwargs)
-        self.getGraph()
-        try:
-            fishName = self.facts.get(self.facts.last_index-1)['fishName']
-        except Exception as error:
-            print(error)
-            fishName = False
-        self.response = render(MODULE_REQUEST, 'labs/fish.html', {
-            'fishName': 'fishNameCARP',
-            'facts': self.facts,
-            'url': '/bookExpert/fish', 
-        })
-
-    @pyknow.Rule(pyknow.Fact(action='fishing'),
-            pyknow.OR(pyknow.AND(Features(feature='lips with 4 mustaches'),
-                    Features(feature='fish swim in rivers or lakes')),
-                pyknow.AND(Features(feature='lips with 4 mustaches'),
-                    Features(feature='fish swim in rivers or lakes')),
-            ),
-            salience=2)
-    def answerTest(self, **kwargs):
-        self.getGraph()
-        try:
-            fishName = self.facts.get(self.facts.last_index-1)['fishName']
-        except Exception as error:
-            print(error)
-            fishName = False
-        self.response = render(MODULE_REQUEST, 'labs/fish.html', {
-            'fishName': '''fish with lips with 4 mustaches AND fish swim in \
-                            rivers or lake OR lips with 4 mustaches AND \
-                            fish swim in rivers or lakes''',
-            'facts': self.facts,
-            'url': '/bookExpert/fish', 
-        })
-    def getGraph(self, path="../full_static/graph/fish.gv", view=False):
-        graph = self.matcher.show_network()
-        graph.format = 'svg'
-        graph.render(path, view=False)
 
 # from django.db import models
 # from django.shortcuts import render

@@ -3,7 +3,7 @@ import pyknow
 class Features(pyknow.Fact):
     @classmethod
     def from_django_model(cls, obj):
-        return cls(feature=obj.feature)
+        return cls(feature=str(obj.id))
 
     @classmethod
     def getIgnoreFeatures(cls, request):
