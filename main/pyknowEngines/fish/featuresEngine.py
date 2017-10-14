@@ -49,7 +49,9 @@ class FeaturesEngine(BaseEngine):
             self.changePostParametrs(fishGlobals.request, {
                     'oldFeatures': oldFeatures,
                     'idunnoFeatures': idunnoFeatures,
-                    'ignoreFeatures': ignoreFeatures
+                    'newIdunnoList': newIdunnoList,
+                    'ignoreFeatures': ignoreFeatures,
+                    'newIgnoreList': newIgnoreList
                 }, ['feature'])
             if oldFeatures != '':
                 self.declareFeatures(oldFeatures.split('&'))
