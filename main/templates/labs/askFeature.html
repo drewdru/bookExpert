@@ -11,32 +11,29 @@
         {% for feature in features %}
         <div class="radio"><label>
             <input type="radio" name="{{answer_id}}"
+                {% if forloop.first %} checked {% endif %}
                 value="{{feature.id}}">{{feature.feature}}
         </label></div>    
         {% endfor %}
-        <div class="radio"><label>
-            <input type="radio" name="{{answer_id}}"
-                value="!feature!{{featuresToIgnore}}">fish hasn't this features
-        </label></div>
         {% for postParam in request|postParameters %}
             <input class="form-control hidden" type="text"
                 value="{{postParam.value}}" name="{{postParam.key}}"
                 id="{{postParam.key}}">
         {% endfor%}
-        <button type="submit" class="btn btn-default">Submit</button>
+        <input class="form-control hidden" type="text"
+            value="{{newIdunnoList}}" name="newIdunnoList"
+            id="newIdunnoList">
+        
+        <input class="form-control hidden" type="text"
+            value="{{newIgnoreList}}" name="newIgnoreList"
+            id="newIgnoreList">
+       
+        <td><input type="submit" value="Yes" name="_submit"
+            class="btn btn-default"></td>
+        <td><input type="submit" value="I dunno ¯\^(°_o)^/¯" name="_idunno"
+            class="btn btn-default"></td>
+        <td><input type="submit" value="No" name="_no"
+            class="btn btn-default"></td>
     </form>
     <pre>{{facts}}</pre>
-    <!-- <form id="form-table-change" action="{{url}}" method="post">
-        {% csrf_token %}
-        <div class="form-group">
-            <label for="{{answer_id}}">Answer:</label>
-            <input class="form-control" name="{{answer_id}}" id="{{answer_id}}">
-        </div>
-        {% for postParam in request|postParameters %}
-            <input class="form-control hidden" type="text"
-                value="{{postParam.value}}" name="old_{{postParam.key}}"
-                id="old_{{postParam.key}}">
-        {% endfor%}
-        <button type="submit" class="btn btn-default">Submit</button>
-    </form> -->
 {% endblock %}

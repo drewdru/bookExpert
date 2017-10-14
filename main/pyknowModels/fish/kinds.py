@@ -13,15 +13,6 @@ class Kinds(pyknow.Fact):
         return facts, obj.kind
 
     @classmethod
-    def getIgnoreKindsFeatures(cls, request):
-        ignoreKinds = request.POST.get('ignoreKinds', '')
-        kindsList = []
-        for kind in ignoreKinds.split('&'):
-            for kinds in FishKind.objects.all().filter(kind=kind):
-                kindsList.append(pyknow.AND(*Kinds.from_django_model(kinds)))
-        return kindsList if kindsList else [pyknow.Fact()]
-
-    @classmethod
     def getKindsFeatures(cls):
         kindsList = []
         for kinds in FishKind.objects.all():
@@ -29,10 +20,20 @@ class Kinds(pyknow.Fact):
             kindsList.append(pyknow.AND(*facts))
         return kindsList
 
-    @classmethod
-    def getNotFishKinds(cls):
-        kindsList = []
-        for kinds in FishKind.objects.all():
-            kindsList.append(pyknow.NOT(pyknow.AND(
-                *Kinds.from_django_model(kinds))))
-        return kindsList
+    # @classmethod
+    # def getNotFishKinds(cls):
+    #     kindsList = []
+    #     for kinds in FishKind.objects.all():
+    #         kindsList.append(pyknow.NOT(pyknow.AND(
+    #             *Kinds.from_django_model(kinds))))
+    #     return kindsList if kindsList else [pyknow.Fact(action='notDeclared')]
+
+    # @classmethod
+    # def getIgnoreKindsFeatures(cls, request):
+    #     ignoreKinds = request.POST.get('ignoreKinds', '')
+    #     kindsList = []
+    #     for kind in ignoreKinds.split('&'):
+    #         for kinds in FishKind.objects.all().filter(kind=kind):
+    #             kindsList.append(pyknow.AND(*Kinds.from_django_model(kinds)))
+    #     return kindsList if kindsList else [pyknow.Fact(action='notDeclared')]
+

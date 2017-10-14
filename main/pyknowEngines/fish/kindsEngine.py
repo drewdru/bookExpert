@@ -6,6 +6,8 @@ from main.pyknowEngines.fish.baseEngine import BaseEngine
 
 import pyknow
 import random
+from main.pyknowEngines.fish import fishGlobals
+# from main.pyknowEngines.fish.fishGlobals import FishGlobals
 
 class KindsEngine(BaseEngine):
     def declareKinds(self, kinds):
@@ -16,6 +18,7 @@ class KindsEngine(BaseEngine):
             pyknow.OR(*Kinds.getKindsFeatures()),
             salience=30)
     def answerKind(self, **kwargs):
+        # fishGlobals = FishGlobals()
         featureList = []
         for key, value in kwargs.items():
             if key.startswith('feature_'):
@@ -23,7 +26,7 @@ class KindsEngine(BaseEngine):
         kinds = FishKind.objects.all().filter(features__in=featureList)
         kind= random.choice(kinds)
         self.getGraph()
-        self.response = render(KindsEngine.request, 'labs/fish.html', {
+        self.response = render(fishGlobals.request, 'labs/fish.html', {
             'amswer': kind.kind,
             'facts': self.facts,
             'url': '/bookExpert/fish', 

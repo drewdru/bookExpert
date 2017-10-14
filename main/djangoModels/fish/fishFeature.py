@@ -5,7 +5,7 @@ class FishFeature(models.Model):
     feature = models.CharField(max_length=30)
 
     def __str__(self):
-        return self.feature
+        return str(self.id)
 
     class Meta:
         ordering = ('feature',)

@@ -1,10 +1,6 @@
 import pyknow
 
 class BaseEngine(pyknow.KnowledgeEngine):
-    @classmethod
-    def initRequest(cls, request):
-        cls.request = request
-
     def getGraph(self, path="../full_static/graph/fish.gv", view=False):
         graph = self.matcher.show_network()
         graph.format = 'svg'
