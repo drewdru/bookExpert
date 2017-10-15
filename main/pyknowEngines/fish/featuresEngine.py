@@ -4,102 +4,114 @@ from main.djangoModels.fish.fishFeature import FishFeature
 from main.pyknowModels.fish.features import Features
 from main.pyknowEngines.fish.baseEngine import BaseEngine
 from main.pyknowEngines.fish import fishGlobals
-# from main.pyknowEngines.fish.fishGlobals import FishGlobals
 
 import pyknow
 
-# REQUEST = HttpRequest()
-
 class FeaturesEngine(BaseEngine):
-    # @classmethod
-    # def initRequest(cls, request):
-    #     global REQUEST
-    #     REQUEST = request
-
     def declareFeatures(self, features):
         for feature in features:
             self.declare(Features(feature=feature))
+
+    def updateParametr(self, buttonName, oldValue, newValue):
+        if oldValue == '' and buttonName in fishGlobals.request.POST:
+            oldValue = newValue
+        elif buttonName in fishGlobals.request.POST:
+            oldValue += '&{}'.format(newValue)
+        return oldValue
+
+    def declareNewFeatures(self):
+        oldFeatures = fishGlobals.request.POST.get('oldFeatures', '')
+        newFeature = fishGlobals.request.POST.get('feature', '')
+
+        idunnoFeatures = fishGlobals.request.POST.get('idunnoFeatures', '')
+        newIdunnoFeatures = fishGlobals.request.POST.get('newIdunnoFeatures', '')
+        
+        ignoreFeatures = fishGlobals.request.POST.get('ignoreFeatures', '')
+        newIgnoreFeatures = fishGlobals.request.POST.get('newIgnoreFeatures', '')
+
+        if newFeature != '':
+            oldFeatures = self.updateParametr('_submit', oldFeatures, newFeature)
+            idunnoFeatures = self.updateParametr('_idunno', idunnoFeatures, newIdunnoFeatures)
+            ignoreFeatures = self.updateParametr('_no', ignoreFeatures, newIgnoreFeatures)
+            self.changePostParametrs(fishGlobals.request, {
+                'oldFeatures': oldFeatures,
+                'idunnoFeatures': idunnoFeatures,
+                'ignoreFeatures': ignoreFeatures,
+            }, [
+                'feature',
+                'newIdunnoFeatures',
+                'newIgnoreFeatures',
+                '_submit',
+                '_idunno',
+                '_no',
+            ])
+            if oldFeatures != '':
+                self.declareFeatures(oldFeatures.split('&'))
+            return True
+        return False
+        
 
     @pyknow.Rule(pyknow.Fact(action='consultationsFeature'),
             pyknow.OR(*Features.getNotFishFeatures()),
             salience=40)
     def askFeature(self, **kwargs):
-        newFeature = fishGlobals.request.POST.get('feature', '')
-        oldFeatures = fishGlobals.request.POST.get('oldFeatures', '')
-
-        idunnoFeatures = fishGlobals.request.POST.get('idunnoFeatures', '')
-        newIdunnoList = fishGlobals.request.POST.get('newIdunnoList', '')
-        
-        ignoreFeatures = fishGlobals.request.POST.get('ignoreFeatures', '')
-        newIgnoreList = fishGlobals.request.POST.get('newIgnoreList', '')
-
-        if newFeature != '':
-            if oldFeatures == '' and '_submit' in fishGlobals.request.POST:
-                oldFeatures = newFeature
-            elif '_submit' in fishGlobals.request.POST:
-                oldFeatures += '&{}'.format(newFeature)
-            if idunnoFeatures == '' and '_idunno' in fishGlobals.request.POST:
-                    idunnoFeatures = newIdunnoList
-            elif '_idunno' in fishGlobals.request.POST:
-                idunnoFeatures += '&{}'.format(newIdunnoList)
-            if ignoreFeatures == '' and '_no' in fishGlobals.request.POST:
-                    ignoreFeatures = newIgnoreList
-            elif '_no' in fishGlobals.request.POST:
-                ignoreFeatures += '&{}'.format(newIgnoreList)                
-            self.changePostParametrs(fishGlobals.request, {
-                    'oldFeatures': oldFeatures,
-                    'idunnoFeatures': idunnoFeatures,
-                    'newIdunnoList': newIdunnoList,
-                    'ignoreFeatures': ignoreFeatures,
-                    'newIgnoreList': newIgnoreList
-                }, ['feature'])
-            if oldFeatures != '':
-                self.declareFeatures(oldFeatures.split('&'))
+        if self.declareNewFeatures():
             return
+
+        oldFeatures = fishGlobals.request.POST.get('oldFeatures', '')
+        idunnoFeatures = fishGlobals.request.POST.get('idunnoFeatures', '')
+        ignoreFeatures = fishGlobals.request.POST.get('ignoreFeatures', '')
 
         featuresList = []
         if ignoreFeatures:
             ignoreFeatures = list(int(x) for x in ignoreFeatures.split('&'))
         else:
             ignoreFeatures = []
+        if idunnoFeatures:
+            idunnoFeatures = list(int(x) for x in idunnoFeatures.split('&'))
+        else:
+            idunnoFeatures = []
 
-        print('ignoreFeatures', ignoreFeatures)
-        for feature in FishFeature.objects.all().exclude(id__in=ignoreFeatures):
-            if str(feature.id) not in oldFeatures.split('&') and\
-                    str(feature.id) not in idunnoFeatures.split('&'):
+        for feature in FishFeature.objects.all().exclude(id__in=ignoreFeatures)\
+                .exclude(id__in=idunnoFeatures):
+            if str(feature.id) not in oldFeatures.split('&'):
                 featuresList.append(feature)
 
         if not featuresList:
-            for feature in FishFeature.objects.all().exclude(
-                    id__in=ignoreFeatures):
-                if str(feature.id) not in oldFeatures.split('&'):
-                    featuresList.append(feature)            
+            for feature in FishFeature.objects.all().exclude(id__in=ignoreFeatures):
+                featuresList.append(feature)            
             self.changePostParametrs(fishGlobals.request, {
                 'idunnoFeatures': '',
-                'newIdunnoList': '',
+                'newIdunnoFeatures': '',
             }, [])
 
+        print('featuresList:', featuresList)
         featuresList = featuresList[0:5]
-
-        newIdunnoList = ''
-        newIgnoreList = ''
+        print('featuresList:', featuresList)
+        newIdunnoFeatures = ''
+        newIgnoreFeatures = ''
         for feature in featuresList:
-            if newIdunnoList == '':
-                newIdunnoList = '{}'.format(feature.id)
+            if newIdunnoFeatures == '':
+                newIdunnoFeatures = '{}'.format(feature.id)
             else:
-                newIdunnoList += '&{}'.format(feature.id)
-            if newIgnoreList == '':
-                newIgnoreList = '{}'.format(feature.id)
+                newIdunnoFeatures += '&{}'.format(feature.id)
+            if newIgnoreFeatures == '':
+                newIgnoreFeatures = '{}'.format(feature.id)
             else:
-                newIgnoreList += '&{}'.format(feature.id)
-        print('newIdunnoList', newIdunnoList)
+                newIgnoreFeatures += '&{}'.format(feature.id)
 
-        self.response = render(fishGlobals.request, 'labs/askFeature.html', {
-            'question': 'Does the fish has one of the next features?',
-            'features': featuresList,
-            'newIdunnoList': newIdunnoList,
-            'newIgnoreList': newIgnoreList,
-            'answer_id': 'feature',
-            'facts': self.facts,
-            'url': '/bookExpert/fish', 
-        })
+        if featuresList:
+            self.response = render(fishGlobals.request, 'labs/askFeature.html', {
+                'question': 'Does the fish has one of the next features?',
+                'features': featuresList,
+                'newIdunnoFeatures': newIdunnoFeatures,
+                'newIgnoreFeatures': newIgnoreFeatures,
+                'answer_id': 'feature',
+                'facts': self.facts,
+                'url': '/bookExpert/fish', 
+            })
+        else:
+            self.getGraph()
+            return render(fishGlobals.request, 'labs/fish.html', {
+                'facts': self.facts,
+            })

@@ -12,6 +12,9 @@ class BaseEngine(pyknow.KnowledgeEngine):
         for key, value in postMap.items():
             request.POST[key] = value
         for key in postDelete:
-            request.POST.pop(key)
+            try:
+                request.POST.pop(key)
+            except KeyError:
+                pass
         request.POST._mutable = mutable
         return request

@@ -28,7 +28,6 @@ class Greetings(pyknow.KnowledgeEngine):
     @pyknow.Rule(pyknow.Fact(action='greet'),
           pyknow.NOT(pyknow.Fact(location=pyknow.W())))
     def ask_location(self):
-        # location = self.request.GET.get("location", "Russia")
         location = self.request.POST.get("location", None)
         if location is None:
             self.response = render(self.request, 'ask.html', {

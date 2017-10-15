@@ -1,6 +1,7 @@
 <!-- home page -->
 {% extends "base.html" %}
 {% load static %}
+{% load mainFilters %}
 {% block title %}TEST pyknow Fish{% endblock %}
 {% block container %}
     <h1>TEST pyknow Fish</h1>
@@ -9,19 +10,20 @@
     {% else %}
         <h3>I don't know what is it!</h3>
     {% endif %}
-    <pre>{{facts}}</pre>
-    <img src="{% static "graph/fish.gv.svg" %}"
-        class="img-responsive" alt="Graph"> 
-<!-- 
     <h1>Продолжить?</h1>
     <form "form-radio" id="form-is_actual-change" action="{{url}}" method="post">
-         for postParam in request|postParameters 
+        {% csrf_token %}
+        {% for postParam in request|postParameters %}
             <input class="form-control hidden" type="text"
                 value="{{postParam.value}}" name="{{postParam.key}}"
                 id="{{postParam.key}}">
-         endfor
+        {% endfor %}
         <button type="submit" class="btn btn-default">Submit</button>
-    </form> -->
+    </form>
+    <pre>{{facts}}</pre>
+    <img src="{% static "graph/fish.gv.svg" %}"
+        class="img-responsive" alt="Graph"> 
+
 
 {% endblock %}
 

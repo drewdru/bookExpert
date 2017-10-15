@@ -1,7 +1,6 @@
 import pyknow
 from main.djangoModels.fish.fishFeature import FishFeature
 from main.pyknowEngines.fish import fishGlobals
-# from main.pyknowEngines.fish.fishGlobals import FishGlobals
 
 class Features(pyknow.Fact):
     @classmethod
@@ -11,20 +10,24 @@ class Features(pyknow.Fact):
     @classmethod
     def getNotFishFeatures(cls):
         ignoreFeatures = fishGlobals.request.POST.get('ignoreFeatures', '')
-        newIgnoreList = fishGlobals.request.POST.get('newIgnoreList', '')
+        newIgnoreFeatures = fishGlobals.request.POST.get('newIgnoreFeatures', '')
         if ignoreFeatures:
             ignoreFeatures = list(int(x) for x in ignoreFeatures.split('&'))
         else:
             ignoreFeatures = []
-        if newIgnoreList and '_no' in fishGlobals.request.POST:
-            newIgnoreList = list(int(x) for x in newIgnoreList.split('&'))
+        if newIgnoreFeatures and '_no' in fishGlobals.request.POST:
+            newIgnoreFeatures = list(int(x) for x in newIgnoreFeatures.split('&'))
         else:
-            newIgnoreList = []
+            newIgnoreFeatures = []
             
-        ignoreFeatures = list(set().union(ignoreFeatures, newIgnoreList))
+        ignoreFeatures = list(set().union(ignoreFeatures, newIgnoreFeatures))
         featuresList = []
+        print('getNotFishFeatures ignoreFeatures:', ignoreFeatures)
         for feature in FishFeature.objects.all().exclude(id__in=ignoreFeatures):
             featuresList.append(pyknow.NOT(Features.from_django_model(feature)))
+        print('getNotFishFeatures featuresList:', featuresList)
+        print('I use this: ', featuresList if featuresList else [
+            pyknow.Fact(action='notDeclared')])
         return featuresList if featuresList else [
             pyknow.Fact(action='notDeclared')]
 

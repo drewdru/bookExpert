@@ -1,17 +1,11 @@
 from django.shortcuts import render
 from django.template import Context, RequestContext
 
-# # singleton START
-# from main.pyknowEngines.fish.fishGlobals import FishGlobals
-# from main.pyknowEngines.fish import fishEngine
-# from main.pyknowEngines.fish import featuresEngine
-# from main.pyknowEngines.fish import kindsEngine
-# from main.pyknowModels.fish import features
-# from main.pyknowModels.fish import kinds
-# # singleton END
 from main.pyknowEngines.fish import fishGlobals
 
+from django.views.decorators.cache import never_cache
 
+@never_cache
 def fishView(request):
     fishGlobals.request = request
     from main.pyknowEngines.fish.fishEngine import FishEngine # fix: import exec

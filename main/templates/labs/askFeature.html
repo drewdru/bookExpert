@@ -21,18 +21,18 @@
                 id="{{postParam.key}}">
         {% endfor%}
         <input class="form-control hidden" type="text"
-            value="{{newIdunnoList}}" name="newIdunnoList"
-            id="newIdunnoList">
+            value="{{newIdunnoFeatures}}" name="newIdunnoFeatures"
+            id="newIdunnoFeatures">
         
         <input class="form-control hidden" type="text"
-            value="{{newIgnoreList}}" name="newIgnoreList"
-            id="newIgnoreList">
+            value="{{newIgnoreFeatures}}" name="newIgnoreFeatures"
+            id="newIgnoreFeatures">
        
-        <td><input type="submit" value="Yes" name="_submit"
+        <td><input type="submit" value="Fish has this feature" name="_submit"
             class="btn btn-default"></td>
         <td><input type="submit" value="I dunno ¯\^(°_o)^/¯" name="_idunno"
             class="btn btn-default"></td>
-        <td><input type="submit" value="No" name="_no"
+        <td><input type="submit" value="Not one" name="_no"
             class="btn btn-default"></td>
     </form>
     <pre>{{facts}}</pre>

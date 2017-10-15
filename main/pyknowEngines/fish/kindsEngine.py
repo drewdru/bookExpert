@@ -7,7 +7,6 @@ from main.pyknowEngines.fish.baseEngine import BaseEngine
 import pyknow
 import random
 from main.pyknowEngines.fish import fishGlobals
-# from main.pyknowEngines.fish.fishGlobals import FishGlobals
 
 class KindsEngine(BaseEngine):
     def declareKinds(self, kinds):
@@ -23,6 +22,7 @@ class KindsEngine(BaseEngine):
         for key, value in kwargs.items():
             if key.startswith('feature_'):
                 featureList.append(int(value['feature']))
+        print('answerKind featureList:', featureList)
         kinds = FishKind.objects.all().filter(features__in=featureList)
         kind= random.choice(kinds)
         self.getGraph()
