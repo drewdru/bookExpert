@@ -8,7 +8,7 @@ class FishKind(models.Model):
             blank=True, default=None)
 
     def __str__(self):
-        return self.kind
+        return str(self.kind)
 
     class Meta:
         ordering = ('kind',)

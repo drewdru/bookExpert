@@ -1,24 +1,47 @@
+from .features import Features
+from .kinds import Kinds
+from main.djangoModels.fish.fishDetachment import FishDetachment
+from main.pyknowEngines.fish import fishGlobals
 
-# from main.djangoModels.fish import fishDetachment
-# from .factListConverter import listToStr
-# import pyknow
+import pyknow
 
-# class Detachments(pyknow.Fact):
-#     @classmethod
-#     def from_django_model(cls, obj):
-#         features = listToStr(obj.features.all())
-#         kinds = listToStr(obj.kinds.all())
-#         return cls(detachment=obj.detachment,
-#                    features=features,
-#                    kinds=kinds)
+class Detachments(pyknow.Fact):
+    @classmethod
+    def factsFromModel(cls, obj):
+        facts = []
+        kinds = []
+        for indx, feature in enumerate(obj.features.all()):
+            facts.append('feature_{}'.format(indx) << Features(
+                feature=str(feature.id)))
+        for indx, kind in enumerate(obj.kinds.all()):
+            facts.append('kind_{}'.format(indx) << Kinds(
+                kind=str(kind.id)))
+        return facts, kinds
 
-#     @classmethod
-#     def getNotFishDetachments(cls):
-#         detachmentList = []
-#         for detachment in fishDetachment.FishDetachment.objects.all():
-#             detachmentList.append(pyknow.NOT(
-#                 Detachments.from_django_model(detachment)))
-#         return detachmentList
+    @classmethod
+    def getDetachmentsFacts(cls):
+        kindsList = []
+        for detachments in FishDetachment.objects.all():
+            facts, kinds = Detachments.factsFromModel(detachments)
+            kindsList.append(pyknow.OR(pyknow.AND(*facts), pyknow.AND(*facts)))
+        return kindsList
 
-#     def save_to_db(self):
-#         return fishDetachment.FishDetachment.objects.create(**self)
+    @classmethod
+    def getNotFishDetachments(cls):
+        ignoreDetachments = fishGlobals.request.POST.get('ignoreDetachments', '')
+        newIgnoreDetachments = fishGlobals.request.POST.get('newIgnoreDetachments', '')
+        if ignoreDetachments:
+            ignoreDetachments = list(int(x) for x in ignoreDetachments.split('&'))
+        else:
+            ignoreDetachments = []
+        if newIgnoreDetachments and '_no' in fishGlobals.request.POST:
+            newIgnoreDetachments = list(int(x) for x in newIgnoreDetachments.split('&'))
+        else:
+            newIgnoreDetachments = []
+            
+        ignoreDetachments = list(set().union(ignoreDetachments, newIgnoreDetachments))
+        detachmentsList = []
+        for detachment in FishDetachment.objects.all().exclude(id__in=ignoreDetachments):
+            detachmentsList.append(pyknow.NOT(Detachments(detachment=str(detachment.id))))
+        return detachmentsList if detachmentsList else [
+            pyknow.Fact(action='notDeclared')]

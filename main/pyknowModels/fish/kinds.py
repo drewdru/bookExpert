@@ -1,5 +1,6 @@
 from .features import Features
 from main.djangoModels.fish.fishKind import FishKind
+from main.pyknowEngines.fish import fishGlobals
 
 import pyknow
 
@@ -19,3 +20,23 @@ class Kinds(pyknow.Fact):
             facts = Kinds.featuresFromModel(kinds)
             kindsList.append(pyknow.AND(*facts))
         return kindsList
+
+    @classmethod
+    def getNotFishKinds(cls):
+        ignoreKinds = fishGlobals.request.POST.get('ignoreKinds', '')
+        newIgnoreKinds = fishGlobals.request.POST.get('newIgnoreKinds', '')
+        if ignoreKinds:
+            ignoreKinds = list(int(x) for x in ignoreKinds.split('&'))
+        else:
+            ignoreKinds = []
+        if newIgnoreKinds and 'kind_no' in fishGlobals.request.POST:
+            newIgnoreKinds = list(int(x) for x in newIgnoreKinds.split('&'))
+        else:
+            newIgnoreKinds = []
+            
+        ignoreKinds = list(set().union(ignoreKinds, newIgnoreKinds))
+        kindsList = []
+        for kind in FishKind.objects.all().exclude(id__in=ignoreKinds):
+            kindsList.append(pyknow.NOT(Kinds(kind=str(kind.id))))
+        return kindsList if kindsList else [
+            pyknow.Fact(action='notDeclared')]

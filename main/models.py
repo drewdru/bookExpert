@@ -1,3 +1,4 @@
 from django.db import models
 
-# Create your models here.
+# Register django models
+from main.djangoModels.fish import fish

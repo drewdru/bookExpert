@@ -18,11 +18,17 @@ class FeaturesEngine(BaseEngine):
     def askFeature(self, **kwargs):
         facts = [
             {'key': 'oldFeatures', 'fustyKey': 'feature',
-                'button': '_submit',},
+                'button': 'feature_submit',},
             {'key': 'idunnoFeatures', 'fustyKey': 'newIdunnoFeatures',
-                'button': '_idunno',},
+                'button': 'feature_idunno',},
             {'key': 'ignoreFeatures', 'fustyKey': 'newIgnoreFeatures',
-                'button': '_no',},
+                'button': 'feature_no',},
+            {'key': 'oldKinds', 'fustyKey': 'kind',
+                'button': 'kind_submit',},
+            {'key': 'idunnoKinds', 'fustyKey': 'newIdunnoKinds',
+                'button': 'kind_idunno',},
+            {'key': 'ignoreKinds', 'fustyKey': 'newIgnoreKinds',
+                'button': 'kind_no',},
         ]
         isUpdated, fishGlobals.request = self.declareNewFacts(
             'feature', facts, fishGlobals.request)
@@ -33,15 +39,13 @@ class FeaturesEngine(BaseEngine):
         idunnoFeatures = fishGlobals.request.POST.get('idunnoFeatures', '')
         ignoreFeatures = fishGlobals.request.POST.get('ignoreFeatures', '')
         featuresList = []
-        print('STEP2 idunnoFeatures:', idunnoFeatures, True if idunnoFeatures else False)
+        oldFeatures = self.splitFactsString(oldFeatures)
         ignoreFeatures = self.splitFactsString(ignoreFeatures)
         idunnoFeatures = self.splitFactsString(idunnoFeatures)
-        print('STEP2 idunnoFeatures:', idunnoFeatures)
 
         for feature in FishFeature.objects.all().exclude(id__in=ignoreFeatures)\
-                .exclude(id__in=idunnoFeatures):
-            if str(feature.id) not in oldFeatures.split('&'):
-                featuresList.append(feature)
+                .exclude(id__in=idunnoFeatures).exclude(id__in=oldFeatures):
+            featuresList.append(feature)
         if not featuresList:
             for feature in FishFeature.objects.all().exclude(id__in=ignoreFeatures):
                 featuresList.append(feature)

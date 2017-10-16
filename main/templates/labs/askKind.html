@@ -11,18 +11,29 @@
         {% for kind in kinds %}
         <div class="radio"><label>
             <input type="radio" name="{{answer_id}}"
-                value="{{kind.kind}}">{{kind.kind}}
+                {% if forloop.first %} checked {% endif %}
+                value="{{kind.id}}">{{kind.kind}}
         </label></div>    
         {% endfor %}
-        <div class="radio"><label>
-            <input type="radio" name="{{answer_id}}"
-                value="{{kindsStr}}">fish hasn't this kinds
-        </label></div>
         {% for postParam in request|postParameters %}
             <input class="form-control hidden" type="text"
                 value="{{postParam.value}}" name="{{postParam.key}}"
                 id="{{postParam.key}}">
         {% endfor%}
-        <button type="submit" class="btn btn-default">Submit</button>
+        <input class="form-control hidden" type="text"
+            value="{{newIdunnoKinds}}" name="newIdunnoKinds"
+            id="newIdunnoKinds">
+        
+        <input class="form-control hidden" type="text"
+            value="{{newIgnoreKinds}}" name="newIgnoreKinds"
+            id="newIgnoreKinds">
+       
+        <td><input type="submit" value="Fish has this kind" name="kind_submit"
+            class="btn btn-default"></td>
+        <td><input type="submit" value="I dunno ¯\^(°_o)^/¯" name="kind_idunno"
+            class="btn btn-default"></td>
+        <td><input type="submit" value="Not one" name="kind_no"
+            class="btn btn-default"></td>
     </form>
+    <pre>{{facts}}</pre>
 {% endblock %}

@@ -5,8 +5,8 @@
 {% block title %}TEST pyknow Fish{% endblock %}
 {% block container %}
     <h1>TEST pyknow Fish</h1>
-    {% if amswer %}
-        <h3>This is {{amswer}}!</h3>
+    {% if answer %}
+        <h3>This is {{answer}}!</h3>
     {% else %}
         <h3>I don't know what is it!</h3>
     {% endif %}
@@ -23,8 +23,6 @@
     <pre>{{facts}}</pre>
     <img src="{% static "graph/fish.gv.svg" %}"
         class="img-responsive" alt="Graph"> 
-
-
 {% endblock %}
 
 

@@ -9,7 +9,7 @@ class FishDetachment(models.Model):
     kinds = models.ManyToManyField(FishKind, null=True, blank=True, default=None)
 
     def __str__(self):
-        return self.detachment
+        return str(self.detachment)
 
     class Meta:
         ordering = ('detachment',)

@@ -9,91 +9,69 @@ import random
 from main.pyknowEngines.fish import fishGlobals
 
 class KindsEngine(BaseEngine):
-    # def declareKinds(self, kinds):
-    #     for kind in kinds:
-    #         self.declare(Kinds(kind=kind))
+    def declareKinds(self, kinds):
+        for kind in kinds:
+            self.declare(Kinds(kind=kind))
 
-    # def updateParametr(self, buttonName, oldValue, newValue):
-    #     if oldValue == '' and buttonName in fishGlobals.request.POST:
-    #         oldValue = newValue
-    #     elif buttonName in fishGlobals.request.POST:
-    #         oldValue += '&{}'.format(newValue)
-    #     return oldValue
+    @pyknow.Rule(pyknow.Fact(action='consultationsKind'),
+            pyknow.OR(*Kinds.getNotFishKinds()),
+            salience=40)
+    def askKind(self, **kwargs):
+        facts = [
+            {'key': 'oldFeatures', 'fustyKey': 'feature',
+                'button': 'feature_submit',},
+            {'key': 'idunnoFeatures', 'fustyKey': 'newIdunnoFeatures',
+                'button': 'feature_idunno',},
+            {'key': 'ignoreFeatures', 'fustyKey': 'newIgnoreFeatures',
+                'button': 'feature_no',},
+            {'key': 'oldKinds', 'fustyKey': 'kind',
+                'button': 'kind_submit',},
+            {'key': 'idunnoKinds', 'fustyKey': 'newIdunnoKinds',
+                'button': 'kind_idunno',},
+            {'key': 'ignoreKinds', 'fustyKey': 'newIgnoreKinds',
+                'button': 'kind_no',},
+        ]
+        isUpdated, fishGlobals.request = self.declareNewFacts(
+            'kind', facts, fishGlobals.request)
+        if isUpdated:
+            return
 
-    # def declareNewKinds(self):
-    #     oldKinds = fishGlobals.request.POST.get('oldKinds', '')
-    #     newKind = fishGlobals.request.POST.get('kind', '')
-    #     idunnoKinds = fishGlobals.request.POST.get('idunnoKinds', '')
-    #     newIdunnoKinds = fishGlobals.request.POST.get('newIdunnoKinds', '')
-    #     ignoreKinds = fishGlobals.request.POST.get('ignoreKinds', '')
-    #     newIgnoreKinds = fishGlobals.request.POST.get('newIgnoreKinds', '')
-    #     if newKind != '':
-    #         oldKinds = self.updateParametr('_submit', oldKinds,
-    #             newKind, fishGlobals.request)
-    #         idunnoKinds = self.updateParametr('_idunno', idunnoKinds,
-    #             newIdunnoKinds, fishGlobals.request)
-    #         ignoreKinds = self.updateParametr('_no', ignoreKinds,
-    #             newIgnoreKinds, fishGlobals.request)
-    #         self.changePostParametrs(fishGlobals.request, {
-    #             'oldKinds': oldKinds,
-    #             'idunnoKinds': idunnoKinds,
-    #             'ignoreKinds': ignoreKinds,
-    #         }, [
-    #             'Kind',
-    #             'newIdunnoKinds',
-    #             'newIgnoreKinds',
-    #             '_submit',
-    #             '_idunno',
-    #             '_no',
-    #         ])
-    #         if oldKinds != '':
-    #             self.declareKinds(oldKinds.split('&'))
-    #         return True
-    #     return False
+        oldKinds = fishGlobals.request.POST.get('oldKinds', '')
+        idunnoKinds = fishGlobals.request.POST.get('idunnoKinds', '')
+        ignoreKinds = fishGlobals.request.POST.get('ignoreKinds', '')
+        kindsList = []
+        oldKinds = self.splitFactsString(oldKinds)
+        ignoreKinds = self.splitFactsString(ignoreKinds)
+        idunnoKinds = self.splitFactsString(idunnoKinds)
 
-    # @pyknow.Rule(pyknow.Fact(action='consultationsFeature'),
-    #         pyknow.OR(*Features.getNotFishFeatures()),
-    #         salience=40)
-    # def askFeature(self, **kwargs):
-    #     if self.declareNewFeatures():
-    #         return
+        for kind in FishKind.objects.all().exclude(id__in=ignoreKinds)\
+                .exclude(id__in=idunnoKinds).exclude(id__in=oldKinds):
+            kindsList.append(kind)
+        if not kindsList:
+            for kind in FishKind.objects.all().exclude(id__in=ignoreKinds):
+                kindsList.append(kind)
+            self.changePostParametrs(fishGlobals.request, {
+                'idunnoKinds': '',
+                'newIdunnoKinds': '',
+            }, [])
 
-    #     oldFeatures = fishGlobals.request.POST.get('oldFeatures', '')
-    #     idunnoFeatures = fishGlobals.request.POST.get('idunnoFeatures', '')
-    #     ignoreFeatures = fishGlobals.request.POST.get('ignoreFeatures', '')
-    #     featuresList = []
-    #     ignoreFeatures = self.splitFactsString(ignoreFeatures)
-    #     idunnoFeatures = self.splitFactsString(idunnoFeatures)
-
-    #     for feature in FishFeature.objects.all().exclude(id__in=ignoreFeatures)\
-    #             .exclude(id__in=idunnoFeatures):
-    #         if str(feature.id) not in oldFeatures.split('&'):
-    #             featuresList.append(feature)
-    #     if not featuresList:
-    #         for feature in FishFeature.objects.all().exclude(id__in=ignoreFeatures):
-    #             featuresList.append(feature)
-    #         self.changePostParametrs(fishGlobals.request, {
-    #             'idunnoFeatures': '',
-    #             'newIdunnoFeatures': '',
-    #         }, [])
-
-    #     featuresList = featuresList[0:5]
-    #     if featuresList:
-    #         newIdunnoFeatures, newIgnoreFeatures = self.getNewParams(featuresList)
-    #         self.response = render(fishGlobals.request, 'labs/askFeature.html', {
-    #             'question': 'Does the fish has one of the next features?',
-    #             'features': featuresList,
-    #             'newIdunnoFeatures': newIdunnoFeatures,
-    #             'newIgnoreFeatures': newIgnoreFeatures,
-    #             'answer_id': 'feature',
-    #             'facts': self.facts,
-    #             'url': '/bookExpert/fish', 
-    #         })
-    #     else:
-    #         self.getGraph()
-    #         return render(fishGlobals.request, 'labs/fish.html', {
-    #             'facts': self.facts,
-    #         })
+        kindsList = kindsList[0:5]
+        if kindsList:
+            newIdunnoKinds, newIgnoreKinds = self.getNewParams(kindsList)
+            self.response = render(fishGlobals.request, 'labs/askKind.html', {
+                'question': 'Does the fish has one of the next kinds?',
+                'kinds': kindsList,
+                'newIdunnoKinds': newIdunnoKinds,
+                'newIgnoreKinds': newIgnoreKinds,
+                'answer_id': 'kind',
+                'facts': self.facts,
+                'url': '/bookExpert/fish', 
+            })
+        else:
+            self.getGraph()
+            return render(fishGlobals.request, 'labs/fish.html', {
+                'facts': self.facts,
+            })
     
 
 
@@ -127,7 +105,7 @@ class KindsEngine(BaseEngine):
         kind = random.choice(kinds)
         self.getGraph()
         self.response = render(fishGlobals.request, 'labs/fish.html', {
-            'amswer': kind.kind,
+            'answer': kind.kind,
             'facts': self.facts,
             'url': '/bookExpert/fish', 
         })
