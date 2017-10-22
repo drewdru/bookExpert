@@ -21,4 +21,4 @@ class Features(pyknow.Fact):
         for feature in FishFeature.objects.all().exclude(id__in=ignoreFeatures):
             featuresList.append(pyknow.NOT(Features(feature=str(feature.id))))
         return featuresList if featuresList else [
-            pyknow.Fact(action='notDeclared')]
+            pyknow.Fact(action='featureNotDeclared')]

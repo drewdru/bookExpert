@@ -1,9 +1,8 @@
+import pyknow
 from .features import Features
 from .kinds import Kinds
 from main.djangoModels.fish.fishDetachment import FishDetachment
 from main.pyknowEngines.fish import fishGlobals
-
-import pyknow
 
 class Detachments(pyknow.Fact):
     @classmethod
@@ -23,7 +22,7 @@ class Detachments(pyknow.Fact):
         kindsList = []
         for detachments in FishDetachment.objects.all():
             facts, kinds = Detachments.factsFromModel(detachments)
-            kindsList.append(pyknow.OR(pyknow.AND(*facts), pyknow.AND(*facts)))
+            kindsList.append(pyknow.OR(pyknow.AND(*facts, *kinds)))
         return kindsList
 
     @classmethod
@@ -44,4 +43,4 @@ class Detachments(pyknow.Fact):
         for detachment in FishDetachment.objects.all().exclude(id__in=ignoreDetachments):
             detachmentsList.append(pyknow.NOT(Detachments(detachment=str(detachment.id))))
         return detachmentsList if detachmentsList else [
-            pyknow.Fact(action='notDeclared')]
+            pyknow.Fact(action='detachmentNotDeclared')]

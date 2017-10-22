@@ -9,24 +9,11 @@ import random
 from main.pyknowEngines.fish import fishGlobals
 
 class DetachmentsEngine(BaseEngine):
-    def declareDetachments(self, detachments):
-        for detachment in detachments:
-            self.declare(Detachments(detachment=detachment))
-
     @pyknow.Rule(pyknow.Fact(action='consultationsDetachment'),
             pyknow.OR(*Detachments.getNotFishDetachments()),
             salience=40)
     def askDetachment(self, **kwargs):
-        facts = [
-            {'key': 'oldDetachments', 'fustyKey': 'detachment',
-                'button': '_submit',},
-            {'key': 'idunnoDetachments', 'fustyKey': 'newIdunnoDetachments',
-                'button': '_idunno',},
-            {'key': 'ignoreDetachments', 'fustyKey': 'newIgnoreDetachments',
-                'button': '_no',},
-        ]
-        isUpdated, fishGlobals.request = self.declareNewFacts(
-            'detachment', facts, fishGlobals.request)
+        isUpdated, fishGlobals.request = self.declareNewFacts()
         if isUpdated:
             return
 
@@ -51,7 +38,7 @@ class DetachmentsEngine(BaseEngine):
 
         detachmentsList = detachmentsList[0:5]
         if detachmentsList:
-            newIdunnoDetachments, newIgnoreDetachments = self.getNewParams(DetachmentsList)
+            newIdunnoDetachments, newIgnoreDetachments = self.getNewParams(detachmentsList)
             self.response = render(fishGlobals.request, 'labs/askDetachment.html', {
                 'question': 'Does the fish has one of the next detachments?',
                 'detachments': detachmentsList,
@@ -78,24 +65,30 @@ class DetachmentsEngine(BaseEngine):
     @pyknow.Rule(pyknow.NOT(pyknow.Fact(action='answerDetachment')),
             pyknow.OR(*Detachments.getDetachmentsFacts()),
             salience=30)
-    def declareDetachmentByFeature(self, kwargs):
+    def declareDetachmentByFeature(self, **kwargs):
+        featureList = self.getFeatureList(kwargs, 'feature')
+        kindList = self.getFeatureList(kwargs, 'kind')
+        if featureList and kindList
+            detachments = FishDetachment.objects.all().filter(
+                features__in=featureList).filter(kinds__in=kindList)
+            self.declareDetachmentsObjects(detachments)
+
+
+
+    def getFeatureList(self, kwargs, prefix):
         featureList = []
         for key, value in kwargs.items():
-            if key.startswith('feature_'):
-                featureList.append(int(value['feature']))
-        detachments = FishDetachment.objects.all().filter(features__in=featureList)
-        self.declareDetachmentsObjects(Detachments)
-
+            if key.startswith('{}_'.format(prefix)):
+                featureList.append(int(value[prefix]))
 
     @pyknow.Rule(pyknow.Fact(action='answerDetachment'),
             pyknow.OR(*Detachments.getDetachmentsFacts()),
             salience=30)
     def answerDetachment(self, **kwargs):
-        featureList = []
-        for key, value in kwargs.items():
-            if key.startswith('feature_'):
-                featureList.append(int(value['feature']))
-        detachments = FishDetachment.objects.all().filter(features__in=featureList)
+        featureList = self.getFeatureList(kwargs, 'feature')
+        kindList = self.getFeatureList(kwargs, 'kind')
+        detachments = FishDetachment.objects.all().filter(
+            features__in=featureList).filter(kinds__in=kindList)
         detachment = random.choice(detachments)
         self.getGraph()
         self.response = render(fishGlobals.request, 'labs/fish.html', {

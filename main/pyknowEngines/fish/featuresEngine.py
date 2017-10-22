@@ -8,30 +8,11 @@ from main.pyknowEngines.fish import fishGlobals
 import pyknow
 
 class FeaturesEngine(BaseEngine):
-    def declareFeatures(self, features):
-        for feature in features:
-            self.declare(Features(feature=feature))
-
     @pyknow.Rule(pyknow.Fact(action='consultationsFeature'),
             pyknow.OR(*Features.getNotFishFeatures()),
             salience=40)
     def askFeature(self, **kwargs):
-        facts = [
-            {'key': 'oldFeatures', 'fustyKey': 'feature',
-                'button': 'feature_submit',},
-            {'key': 'idunnoFeatures', 'fustyKey': 'newIdunnoFeatures',
-                'button': 'feature_idunno',},
-            {'key': 'ignoreFeatures', 'fustyKey': 'newIgnoreFeatures',
-                'button': 'feature_no',},
-            {'key': 'oldKinds', 'fustyKey': 'kind',
-                'button': 'kind_submit',},
-            {'key': 'idunnoKinds', 'fustyKey': 'newIdunnoKinds',
-                'button': 'kind_idunno',},
-            {'key': 'ignoreKinds', 'fustyKey': 'newIgnoreKinds',
-                'button': 'kind_no',},
-        ]
-        isUpdated, fishGlobals.request = self.declareNewFacts(
-            'feature', facts, fishGlobals.request)
+        isUpdated, fishGlobals.request = self.declareNewFacts()
         if isUpdated:
             return
 

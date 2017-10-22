@@ -38,5 +38,4 @@ class Kinds(pyknow.Fact):
         kindsList = []
         for kind in FishKind.objects.all().exclude(id__in=ignoreKinds):
             kindsList.append(pyknow.NOT(Kinds(kind=str(kind.id))))
-        return kindsList if kindsList else [
-            pyknow.Fact(action='notDeclared')]
+        return kindsList if kindsList else [pyknow.Fact(action='kindNotDeclared')]

@@ -9,30 +9,12 @@ import random
 from main.pyknowEngines.fish import fishGlobals
 
 class KindsEngine(BaseEngine):
-    def declareKinds(self, kinds):
-        for kind in kinds:
-            self.declare(Kinds(kind=kind))
 
     @pyknow.Rule(pyknow.Fact(action='consultationsKind'),
             pyknow.OR(*Kinds.getNotFishKinds()),
             salience=40)
     def askKind(self, **kwargs):
-        facts = [
-            {'key': 'oldFeatures', 'fustyKey': 'feature',
-                'button': 'feature_submit',},
-            {'key': 'idunnoFeatures', 'fustyKey': 'newIdunnoFeatures',
-                'button': 'feature_idunno',},
-            {'key': 'ignoreFeatures', 'fustyKey': 'newIgnoreFeatures',
-                'button': 'feature_no',},
-            {'key': 'oldKinds', 'fustyKey': 'kind',
-                'button': 'kind_submit',},
-            {'key': 'idunnoKinds', 'fustyKey': 'newIdunnoKinds',
-                'button': 'kind_idunno',},
-            {'key': 'ignoreKinds', 'fustyKey': 'newIgnoreKinds',
-                'button': 'kind_no',},
-        ]
-        isUpdated, fishGlobals.request = self.declareNewFacts(
-            'kind', facts, fishGlobals.request)
+        isUpdated, fishGlobals.request = self.declareNewFacts()
         if isUpdated:
             return
 
@@ -84,23 +66,25 @@ class KindsEngine(BaseEngine):
     @pyknow.Rule(pyknow.NOT(pyknow.Fact(action='answerKind')),
             pyknow.OR(*Kinds.getKindsFeatures()),
             salience=30)
-    def declareKindByFeature(self, kwargs):
+    def declareKindByFeature(self, **kwargs):
+        featureList = self.getFeatureList(kwargs)
+        if featureList:
+            kinds = FishKind.objects.all().filter(features__in=featureList)
+            self.declareKindsObjects(kinds)
+
+
+
+    def getFeatureList(self, kwargs):
         featureList = []
         for key, value in kwargs.items():
             if key.startswith('feature_'):
                 featureList.append(int(value['feature']))
-        kinds = FishKind.objects.all().filter(features__in=featureList)
-        self.declareKindsObjects(kinds)
-
 
     @pyknow.Rule(pyknow.Fact(action='answerKind'),
             pyknow.OR(*Kinds.getKindsFeatures()),
             salience=30)
     def answerKind(self, **kwargs):
-        featureList = []
-        for key, value in kwargs.items():
-            if key.startswith('feature_'):
-                featureList.append(int(value['feature']))
+        featureList = self.getFeatureList(kwargs)
         kinds = FishKind.objects.all().filter(features__in=featureList)
         kind = random.choice(kinds)
         self.getGraph()

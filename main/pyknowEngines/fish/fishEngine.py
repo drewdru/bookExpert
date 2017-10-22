@@ -9,7 +9,8 @@ import pyknow
 class FishEngine(FeaturesEngine, KindsEngine):
     @pyknow.DefFacts()
     def _initial_action(self):
-        # yield pyknow.Fact(action='answerDetachment')
-        yield pyknow.Fact(action='answerKind')
+        yield pyknow.Fact(action='answerDetachment')
+        # yield pyknow.Fact(action='declareKind')
+        # yield pyknow.Fact(action='answerKind')
         yield pyknow.Fact(action='consultationsKind')
         yield pyknow.Fact(action='consultationsFeature')
